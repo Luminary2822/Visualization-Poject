@@ -1,0 +1,630 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>数据可视化分析</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<!--<script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.js"></script>-->
+		<script src="js/jquery.min.js"></script>
+	</head>
+	<body>
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+				<!-- Header -->
+					<header id="header">
+						<div class="logo">
+							<span class="icon fa-diamond"></span>
+						</div>
+						<div class="content">
+							<div class="inner">
+								<h1>Visualization_Weather_Data</h1>
+								<p>这里是杭州未来七天天气，近一个月内AQI空气质量状况统计，以及全国PM2.5指数分布。<br>请点击相关信息查看数据</p>
+							</div>
+						</div>
+						<nav>
+							<ul>
+								<li style="width: 230px;"><a href="#weather">杭州未来七天气温</a></li>
+								<li style="width: 230px;"><a href="#PM">全国PM2.5指数分布</a></li>
+								<li style="width: 240px;"><a href="#air">杭州近期AQI空气质量</a></li>
+							</ul>
+						</nav>
+					</header>
+
+				<!-- Main -->
+					<div id="main">
+						<!-- weather -->
+							 <article id="weather">
+								<h3 class="major">Temperature change in Hangzhou in the next seven days</h3>
+								<p>杭州未来七天内气温变化状况</p>
+								<span id="first" style="width: 580px;height:500px;"></span>
+							</article>
+						<!-- air -->
+							<article id="air">
+							 <h2 class="major">Air quality AQI status statistics</h2>
+							 <p>杭州近期一个月内空气质量AQI状况统计：优、良、轻度污染</p>
+							 <span id="second" style="width: 580px;height:500px;"></span>
+						 </article>
+
+						<!-- PM2.5 -->
+							<article id="PM">
+							 <h2 class="major">National PM2.5 index distribution</h2>
+							 <p>全国PM2.5指数分布</p>
+							 <span id="third" style="width: 600px;height:500px;"></span>
+						 </article>
+				</div>
+				<!-- Footer -->
+					<footer id="footer">
+						 <p class="copyright">&copy; Luminary.Design:2018.12</p>
+					</footer>
+			</div>
+
+		<!-- BG -->
+			<div id="bg"></div>
+
+		<!-- Scripts -->
+		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/util.js"></script>
+		<script src="assets/js/main.js"></script>
+
+		<!-- 引入 echarts -->
+		  <script src="js/echarts.js"></script>
+		  <!-- 引入主题 -->
+		  <script src="js/theme/vintage.js"></script>
+		  <script src="js/theme/dark.js"></script>
+		  <script src="js/theme/infographic.js"></script>
+		  <script src="js/theme/macarons.js"></script>
+		  <script src="js/theme/roma.js"></script>
+		  <script src="js/theme/shine.js"></script>
+
+			<script type="text/javascript">
+					    // 基于准备好的dom，初始化echarts实例
+					    var myChart1 = echarts.init(document.getElementById('first'),'dark');
+                        var myChart2 = echarts.init(document.getElementById('second'),'dark');
+                        var myChart3 = echarts.init(document.getElementById('third'),'dark');
+
+                        // 指定图表的配置项和数据
+                        //杭州未来七天内气温变化状况
+                        // var city = "杭州";
+                        // url='http://v.juhe.cn/weather/index?format=2&cityname='+'杭州'+'&key=a7de71b8c8babdae043d642bb6fdcc55';
+                        $.ajax({
+                            url:"Future_weather.json",
+                            // url:url,
+                            type:"get",
+                            dataType:"json",
+                            success:function (data) {
+                                var list=data.result.future;		//未来一周内的气温
+								var cmin=[];						//最低气温
+                                var cmax=[];						//最高气温
+                                var cday=[];						//日期
+                                for(var i=0;i<list.length;i++){
+                                    var wd=data.result.future[i].temperature;
+                                    var xq=data.result.future[i].week;
+                                    cday.push(xq);
+                                    var arr=wd.split("~");          //分解出最高温度和最低温度
+                                    var min=arr[0].split("℃")[0];
+                                    var max=arr[1].split("℃")[0];
+                                    cmin.push(min);
+                                    cmax.push(max);
+                                }
+                                // 填入数据
+                                var option1=({
+                                    title: {
+                                        text: '未来一周气温变化',
+                                    },
+                                    //提示框
+                                    tooltip: {
+                                        trigger: 'axis'
+                                    },
+                                    //图例
+                                    legend: {
+                                        data:['最高气温','最低气温']
+                                    },
+                                    //工具栏组件
+                                    toolbox: {
+                                        show: true,
+                                        trigger:'item',         //数据项图形触发
+                                        feature: {
+                                            dataZoom: {
+                                                yAxisIndex: 'none'          //指定哪些 yAxis 被控制。如果缺省则控制所有的y轴
+                                            },
+                                            magicType: {type: ['line', 'bar']},     //切换成折线图和柱状图
+                                            // restore: {},
+                                            // saveAsImage: {}
+                                        }
+                                    },
+                                    xAxis: {
+                                        data:cday
+                                    },
+                                    yAxis: {
+                                        type: 'value',
+                                        axisLabel: {
+                                            formatter: '{value} °C'
+                                        }
+                                    },
+                                    series: [{
+                                        // 根据名字对应到相应的系列
+                                        name: '最高气温',
+                                        data: cmax,
+                                        type:'line',
+                                        markPoint: {
+                                            data: [
+                                                {type: 'max', name: '最大值'},     //最高气温的最高值（上面红色的点）
+                                                {type: 'min', name: '最小值'}      //最高气温的最低值（下面红色的点）
+                                            ]
+                                        },
+                                        markLine: {
+                                            data: [
+                                                {type: 'average', name: '平均值'}  //上面红色的水平线带有数字
+                                            ]
+                                        }
+                                    },{
+                                        name: '最低气温',
+                                        data: cmin,
+                                        type:'line',
+                                        markPoint: {
+                                            data: [
+                                                {type: 'min', name: '周最低'}      //最低气温的最小值（下面蓝色的点）
+                                            ]
+                                        },
+                                        markLine: {
+                                            data: [
+                                                {type: 'average', name: '平均值'}, //下面蓝色的水平线
+                                                [{
+                                                    symbol: 'none',
+                                                    x: '90%',
+                                            yAxis: 'max'
+                                            }, {
+                                                symbol: 'circle',
+                                                label: {
+                                                    normal: {
+                                                        position: 'start',
+                                                        formatter: '最大值'    //从最高点出发的最大值线
+                                                        }
+                                                    },
+                                                    type: 'max',
+                                                    name: '最高点'             //最低气温的最高点
+                                                }]
+                                            ]
+                                        }
+                                        }]
+                                    });
+                                                myChart1.setOption(option1);    //设置图表实例的配置项以及数据
+                                    }
+                                });
+                    //杭州近期AQI空气质量统计
+                    $.ajax({
+                        // url:'http://web.juhe.cn:8080/environment/air/cityair?city='+'杭州'+'&key=c34a78f62a989190c226c489e260c0a9',
+                        url:"Air_quality.json",
+                        type:"get",
+                        dataType:"json",
+                        success:function (data) {
+                            var list = data.result[0].lastTwoWeeks;     //近一个月内杭州空气数据数组
+                            console.log(data);
+                            var qua_1 = [];         //存放“优”
+                            var qua_2 = [];         //存放“良”
+                            var qua_3 = [];         //存放“轻度污染”
+                            var all_num=0;          //总数
+                            for(var key in list)
+							{
+                                all_num++;
+                                if(list[key].quality==="优")
+                                    qua_1.push(list[key].quality);
+                                else if(list[key].quality==="良")
+                                    qua_2.push(list[key].quality);
+                                else
+                                    qua_3.push(list[key].quality);
+							}
+							var excellent_num=qua_1.length;         //取得“优”“良”“轻度污染”的个数
+                            var good_num=qua_2.length;
+                            var light_num=qua_3.length;
+
+                            var option2=({
+                                tooltip: {
+                                    show: true,
+                                    trigger: 'item',
+                                    formatter: "{a} <br/>{b}: {c} ({d}%)"       //统计占百分比
+                                },
+                                legend: {
+                                    orient: 'vertical',                         //垂直图例
+                                    x: 'left',
+                                    data:['优秀','良好','轻度污染']
+                                },
+                                series: [
+                                    //内部饼图
+                                    {
+                                        name:'空气质量',
+                                        type:'pie',
+                                        selectedMode: 'single',                 //图例选择的模式，控制是否可以通过点击图例改变系列的显示状态，single表示单选
+                                        radius: [0, '30%'],
+                                        label: {
+                                            normal: {
+                                                position: 'inner'               //内部饼图
+                                            }
+                                        },
+                                        labelLine: {
+                                            normal: {
+                                                show: false
+                                            }
+                                        },
+                                        data:[
+                                            {value:excellent_num,name:'优秀'},
+                                            {value:good_num,name:'良好'},
+                                            {value:light_num,name:'轻度污染'},
+                                        ]
+                                    },
+                                    //外部环图
+                                    {
+                                        name:'空气质量',
+                                        type:'pie',
+                                        radius: ['40%', '55%'],
+                                        label: {
+                                            normal: {
+                                                formatter: '{a|{a}}{abg|}\n{hr|}\n  {b|{b}：}{c}  {per|{d}%}  ',
+                                                backgroundColor: '#dd6b66',
+                                                borderColor: '#aaa',
+                                                borderWidth: 1,
+                                                borderRadius: 4,
+                                                rich: {
+                                                    a: {                           //标题区域
+                                                        // color: '#999',
+                                                        color:'black',
+                                                        lineHeight: 22,
+                                                        align: 'center'
+                                                    },
+                                                    hr: {                           //分割线
+                                                        borderColor: '#aaa',
+                                                        width: '100%',
+                                                        borderWidth: 0.5,
+                                                        height: 0
+                                                    },
+                                                    b: {                            //优良轻度污染的字区域
+                                                        fontSize: 16,
+                                                        lineHeight: 33
+                                                    },
+                                                    per: {                          //百分比区域
+                                                        color: '#eee',
+                                                        backgroundColor: '#334455',
+                                                        padding: [2, 4],
+                                                        borderRadius: 2
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        data:[
+                                            {value:excellent_num,name:'优秀'},
+                                            {value:good_num,name:'良好'},
+                                            {value:light_num,name:'轻度污染'}
+                                        ]
+                                    }
+                                ]
+                            });
+                            myChart2.setOption(option2);
+                    }
+                    });
+
+                    $.get('js/china.json', function (chinaJson) {       //加载china.json数据
+                        echarts.registerMap('china', chinaJson);        //注册可用的地图，必须在包括 geo 组件或者 map 图表类型的时候才能使用
+                        var geoCoordMap = {                             //地理坐标
+                            '海门':[121.15,31.89],
+                            '鄂尔多斯':[109.781327,39.608266],
+                            '招远':[120.38,37.35],
+                            '舟山':[122.207216,29.985295],
+                            '齐齐哈尔':[123.97,47.33],
+                            '盐城':[120.13,33.38],
+                            '赤峰':[118.87,42.28],
+                            '青岛':[120.33,36.07],
+                            '乳山':[121.52,36.89],
+                            '金昌':[102.188043,38.520089],
+                            '泉州':[118.58,24.93],
+                            '莱西':[120.53,36.86],
+                            '日照':[119.46,35.42],
+                            '胶南':[119.97,35.88],
+                            '南通':[121.05,32.08],
+                            '拉萨':[91.11,29.97],
+                            '云浮':[112.02,22.93],
+                            '梅州':[116.1,24.55],
+                            '文登':[122.05,37.2],
+                            '上海':[121.48,31.22],
+                            '攀枝花':[101.718637,26.582347],
+                            '威海':[122.1,37.5],
+                            '承德':[117.93,40.97],
+                            '厦门':[118.1,24.46],
+                            '汕尾':[115.375279,22.786211],
+                            '潮州':[116.63,23.68],
+                            '丹东':[124.37,40.13],
+                            '太仓':[121.1,31.45],
+                            '曲靖':[103.79,25.51],
+                            '烟台':[121.39,37.52],
+                            '福州':[119.3,26.08],
+                            '瓦房店':[121.979603,39.627114],
+                            '即墨':[120.45,36.38],
+                            '抚顺':[123.97,41.97],
+                            '玉溪':[102.52,24.35],
+                            '张家口':[114.87,40.82],
+                            '阳泉':[113.57,37.85],
+                            '莱州':[119.942327,37.177017],
+                            '湖州':[120.1,30.86],
+                            '汕头':[116.69,23.39],
+                            '昆山':[120.95,31.39],
+                            '宁波':[121.56,29.86],
+                            '湛江':[110.359377,21.270708],
+                            '揭阳':[116.35,23.55],
+                            '荣成':[122.41,37.16],
+                            '连云港':[119.16,34.59],
+                            '葫芦岛':[120.836932,40.711052],
+                            '常熟':[120.74,31.64],
+                            '东莞':[113.75,23.04],
+                            '河源':[114.68,23.73],
+                            '淮安':[119.15,33.5],
+                            '泰州':[119.9,32.49],
+                            '南宁':[108.33,22.84],
+                            '营口':[122.18,40.65],
+                            '惠州':[114.4,23.09],
+                            '江阴':[120.26,31.91],
+                            '蓬莱':[120.75,37.8],
+                            '韶关':[113.62,24.84],
+                            '嘉峪关':[98.289152,39.77313],
+                            '广州':[113.23,23.16],
+                            '延安':[109.47,36.6],
+                            '太原':[112.53,37.87],
+                            '清远':[113.01,23.7],
+                            '中山':[113.38,22.52],
+                            '昆明':[102.73,25.04],
+                            '寿光':[118.73,36.86],
+                            '盘锦':[122.070714,41.119997],
+                            '长治':[113.08,36.18],
+                            '深圳':[114.07,22.62],
+                            '珠海':[113.52,22.3],
+                            '宿迁':[118.3,33.96],
+                            '咸阳':[108.72,34.36],
+                            '铜川':[109.11,35.09],
+                            '平度':[119.97,36.77],
+                            '佛山':[113.11,23.05],
+                            '海口':[110.35,20.02],
+                            '江门':[113.06,22.61],
+                            '章丘':[117.53,36.72],
+                            '肇庆':[112.44,23.05],
+                            '大连':[121.62,38.92],
+                            '临汾':[111.5,36.08],
+                            '吴江':[120.63,31.16],
+                            '石嘴山':[106.39,39.04],
+                            '沈阳':[123.38,41.8],
+                            '苏州':[120.62,31.32],
+                            '茂名':[110.88,21.68],
+                            '嘉兴':[120.76,30.77],
+                            '长春':[125.35,43.88],
+                            '胶州':[120.03336,36.264622],
+                            '银川':[106.27,38.47],
+                            '张家港':[120.555821,31.875428],
+                            '三门峡':[111.19,34.76],
+                            '锦州':[121.15,41.13],
+                            '南昌':[115.89,28.68],
+                            '柳州':[109.4,24.33],
+                            '三亚':[109.511909,18.252847],
+                            '自贡':[104.778442,29.33903],
+                            '吉林':[126.57,43.87],
+                            '阳江':[111.95,21.85],
+                            '泸州':[105.39,28.91],
+                            '西宁':[101.74,36.56],
+                            '宜宾':[104.56,29.77],
+                            '呼和浩特':[111.65,40.82],
+                            '成都':[104.06,30.67],
+                            '大同':[113.3,40.12],
+                            '镇江':[119.44,32.2],
+                            '桂林':[110.28,25.29],
+                            '张家界':[110.479191,29.117096],
+                            '宜兴':[119.82,31.36],
+                            '北海':[109.12,21.49],
+                            '西安':[108.95,34.27],
+                            '金坛':[119.56,31.74],
+                            '东营':[118.49,37.46],
+                            '牡丹江':[129.58,44.6],
+                            '遵义':[106.9,27.7],
+                            '绍兴':[120.58,30.01],
+                            '扬州':[119.42,32.39],
+                            '常州':[119.95,31.79],
+                            '潍坊':[119.1,36.62],
+                            '重庆':[106.54,29.59],
+                            '台州':[121.420757,28.656386],
+                            '南京':[118.78,32.04],
+                            '滨州':[118.03,37.36],
+                            '贵阳':[106.71,26.57],
+                            '无锡':[120.29,31.59],
+                            '本溪':[123.73,41.3],
+                            '克拉玛依':[84.77,45.59],
+                            '渭南':[109.5,34.52],
+                            '马鞍山':[118.48,31.56],
+                            '宝鸡':[107.15,34.38],
+                            '焦作':[113.21,35.24],
+                            '句容':[119.16,31.95],
+                            '北京':[116.46,39.92],
+                            '徐州':[117.2,34.26],
+                            '衡水':[115.72,37.72],
+                            '包头':[110,40.58],
+                            '绵阳':[104.73,31.48],
+                            '乌鲁木齐':[87.68,43.77],
+                            '枣庄':[117.57,34.86],
+                            '杭州':[120.19,30.26],
+                            '淄博':[118.05,36.78],
+                            '鞍山':[122.85,41.12],
+                            '溧阳':[119.48,31.43],
+                            '库尔勒':[86.06,41.68],
+                            '安阳':[114.35,36.1],
+                            '开封':[114.35,34.79],
+                            '济南':[117,36.65],
+                            '德阳':[104.37,31.13],
+                            '温州':[120.65,28.01],
+                            '九江':[115.97,29.71],
+                            '邯郸':[114.47,36.6],
+                            '临安':[119.72,30.23],
+                            '兰州':[103.73,36.03],
+                            '沧州':[116.83,38.33],
+                            '临沂':[118.35,35.05],
+                            '南充':[106.110698,30.837793],
+                            '天津':[117.2,39.13],
+                            '富阳':[119.95,30.07],
+                            '泰安':[117.13,36.18],
+                            '诸暨':[120.23,29.71],
+                            '郑州':[113.65,34.76],
+                            '哈尔滨':[126.63,45.75],
+                            '聊城':[115.97,36.45],
+                            '芜湖':[118.38,31.33],
+                            '唐山':[118.02,39.63],
+                            '平顶山':[113.29,33.75],
+                            '邢台':[114.48,37.05],
+                            '德州':[116.29,37.45],
+                            '济宁':[116.59,35.38],
+                            '荆州':[112.239741,30.335165],
+                            '宜昌':[111.3,30.7],
+                            '义乌':[120.06,29.32],
+                            '丽水':[119.92,28.45],
+                            '洛阳':[112.44,34.7],
+                            '秦皇岛':[119.57,39.95],
+                            '株洲':[113.16,27.83],
+                            '石家庄':[114.48,38.03],
+                            '莱芜':[117.67,36.19],
+                            '常德':[111.69,29.05],
+                            '保定':[115.48,38.85],
+                            '湘潭':[112.91,27.87],
+                            '金华':[119.64,29.12],
+                            '岳阳':[113.09,29.37],
+                            '长沙':[113,28.21],
+                            '衢州':[118.88,28.97],
+                            '廊坊':[116.7,39.53],
+                            '菏泽':[115.480656,35.23375],
+                            '合肥':[117.27,31.86],
+                            '武汉':[114.31,30.52],
+                            '大庆':[125.03,46.58]
+                        };
+                        $.ajax({
+                            url:"PM2.5.json",
+                            type:"get",
+                            dataType:"json",
+                            success:function (data) {
+                                var convertData = function (data) {
+                                    var res = [];
+                                    for (var i = 0; i < data.length; i++) {
+                                            var geoCoord = geoCoordMap[data[i].name];   //将城市名与指数对应
+                                        if (geoCoord) {
+                                            res.push({
+                                                name: data[i].name,
+                                                value: geoCoord.concat(data[i].value)
+                                            });
+                                        }
+                                    }
+                                    return res;
+                                };
+
+                                var option3 = {
+                                    backgroundColor: '#404a59',
+                                    title: {
+                                        text: '全国主要城市空气质量',
+                                        subtext: 'data from PM25.in',
+                                        sublink: 'http://www.pm25.in',
+                                        left: 'center',
+                                        textStyle: {
+                                            color: '#fff'
+                                        }
+                                    },
+                                    //提示框组件
+                                    tooltip: {
+                                        show: true,
+                                        trigger: 'item',
+                                            position: [20, 20],
+                                    },
+                                    legend: {
+                                        orient: 'vertical',
+                                        y: 'bottom',
+                                        x: 'right',
+                                        data: ['pm2.5'],
+                                        textStyle: {
+                                            color: '#fff'
+                                        }
+                                    },
+                                    geo: {
+                                        map: 'china',
+                                        label: {
+                                            emphasis: {
+                                                show: false             //高亮状态下的多边形和标签样式。
+                                            }
+                                        },
+                                        roam: true,                     //是否开启鼠标缩放和平移漫游
+                                        itemStyle: {
+                                            normal: {
+                                                areaColor: '#323c48',   //地图区域的颜色
+                                                borderColor: '#111'     //图形的描边颜色
+                                            },
+                                            emphasis: {
+                                                areaColor: '#2a333d'
+                                            }
+                                        }
+                                    },
+                                    series: [
+                                        {
+                                            name: 'pm2.5',
+                                            type: 'scatter',            //散点图
+                                            coordinateSystem: 'geo',
+                                            data: convertData(data),
+                                            symbolSize: function (val) {
+                                                return val[2] / 10;
+                                            },
+                                            label: {
+                                                normal: {
+                                                    formatter: '{b}',
+                                                    position: 'right',
+                                                    show: false
+                                                },
+                                                emphasis: {
+                                                    show: true
+                                                }
+                                            },
+                                            itemStyle: {
+                                                normal: {
+                                                    color: '#ddb926'
+                                                }
+                                            }
+                                        },
+                                        {
+                                            name: 'Top 5',
+                                            type: 'effectScatter',
+                                            coordinateSystem: 'geo',            //地理坐标系
+                                            data: convertData(data.sort(function (a, b) {
+                                                return b.value - a.value;
+                                            }).slice(0, 6)),
+                                            symbolSize: function (val) {
+                                                return val[2] / 10;
+                                            },
+                                            showEffectOn: 'render',             //配置何时显示特效:绘制完成后显示特效
+                                            rippleEffect: {                     //涟漪特效相关配置
+                                                brushType: 'stroke'             //波纹的绘制方式，可选 'stroke' 和 'fill'
+                                            },
+                                            hoverAnimation: true,                //是否开启 hover 在拐点标志上的提示动画效果。
+                                            label: {
+                                                normal: {
+                                                    formatter: '{b}',
+                                                    position: 'right',
+                                                    show: true
+                                                }
+                                            },
+                                            itemStyle: {
+                                                normal: {
+                                                    color: '#f4e925',
+                                                    shadowBlur: 10,
+                                                    shadowColor: '#333'
+                                                }
+                                            },
+                                            zlevel: 1
+                                        }
+                                    ]
+                                };
+                        myChart3.setOption(option3);
+                            }
+                    });
+                    });
+			</script>
+	</body>
+</html>
